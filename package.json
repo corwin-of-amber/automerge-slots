@@ -1,0 +1,11 @@
+{
+  "name": "automerge-slots",
+  "version": "1.0.0",
+  "description": "A thin layer for accessing Automerge elements through a unified interface",
+  "main": "index.js",
+  "peerDependencies": {
+    "automerge": "^0.11.0"
+  },
+  "author": "Shachar Itzhaky",
+  "license": "MIT"
+}
