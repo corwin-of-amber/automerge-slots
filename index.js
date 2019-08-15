@@ -1,9 +1,31 @@
 
 /**
+ * Base class with common / default implementations.
+ */
+class SlotBase {
+    park() {
+        var receiver = this.docSlot || this, h;
+
+        var promise = new Promise((resolve, reject) => {
+            h = () => {
+                var value = this.get();
+                if (value)
+                    { promise.cancel(); resolve(value); }
+            }
+            receiver.registerHandler(h);
+        });
+        promise.cancel = () => receiver.unregisterHandler(h);
+        h();
+        return promise;
+    }
+}
+
+/**
  * Represents a document within its DocSet.
  */
-class DocumentSlot {
+class DocumentSlot extends SlotBase {
     constructor(docSet, docId) {
+        super();
         this.docSet = docSet;
         this.docId = docId;
     }
@@ -12,13 +34,17 @@ class DocumentSlot {
         return this.docSet.getDoc(this.docId);
     }
 
+    getFrom(doc) { return doc; }
+
     set(doc) {
         this.docSet.setDoc(this.docId, doc);
     }
 
-    change(func) {
+    change(func, post=undefined) {
         var doc = this.get() || automerge.init(),
             newDoc = automerge.change(doc, func);
+        if (post) post(newDoc);
+        // only set if changed, to avoid triggering an event
         if (newDoc !== doc)
             this.set(newDoc);
         return newDoc;
@@ -56,8 +82,9 @@ class DocumentSlot {
  * Represents an object contained in a document,
  * referenced by its path.
  */
-class DocumentPathSlot {
+class DocumentPathSlot extends SlotBase {
     constructor(docSlot, path=[]) {
+        super();
         this.docSlot = docSlot;
         this.path = path;
     }
@@ -87,8 +114,18 @@ class DocumentPathSlot {
             return automerge.getObjectId(newValue);
     }
 
-    change(func) {
-        return this.docSlot.change(doc => func(this.getFrom(doc)));
+    change(func, post=undefined) {
+        return this.docSlot.change(doc => func(this.getFrom(doc)), post);
+    }
+
+    path(path=[]) {
+        return path && path.length ?
+            this.docSlot.path(this.path.concat(path)) : this;
+    }
+
+    object(objectId) {
+        // (does not check that objectId is actually in a sub-path)
+        return this.docSlot.object(objectId);
     }
 
     _getPath(obj, path) {
@@ -104,8 +141,9 @@ class DocumentPathSlot {
  * Represents an object contained in a document,
  * referenced via its object identifier.
  */
-class DocumentObjectSlot {
+class DocumentObjectSlot extends SlotBase {
     constructor(docSlot, objectId) {
+        super();
         this.docSlot = docSlot;
         this.objectId = objectId;
     }
@@ -122,13 +160,17 @@ class DocumentObjectSlot {
         throw new Error('cannot set object by identifier only');
     }
 
-    change(func) {
-        var doc = this.docSlot.get(),
-            newDoc = automerge.change(doc, doc => func(this.getFrom(doc)));
-        // only set if changed, to avoid re-triggering
-        if (newDoc !== doc)
-            this.docSlot.set(newDoc);
-        return newDoc;
+    change(func, post=undefined) {
+        return this.docSlot.change(doc => func(this.getFrom(doc)), post);
+    }
+
+    path(path=[]) {
+        throw new Error('not implemented');
+    }
+
+    object(objectId) {
+        // (does not check that objectId is actually a sub-object)
+        return this.docSlot.object(objectId);
     }
 }
 
