@@ -1,3 +1,5 @@
+const automerge = require('automerge');
+
 
 /**
  * Base class with common / default implementations.
