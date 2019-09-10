@@ -63,6 +63,8 @@ class DocumentSlot extends SlotBase {
     }
 
     object(objectId) {
+        if (typeof objectId !== 'string')
+            objectId = automerge.getObjectId(objectId);
         return new DocumentObjectSlot(this, objectId);
     }
 
@@ -80,15 +82,32 @@ class DocumentSlot extends SlotBase {
     }
 }
 
+
+class SubslotBase extends SlotBase {
+    registerHandler(callback) {
+        var value = this.get(), h;
+
+        this.docSlot.registerHandler(h = (doc) => {
+            var prev = value;
+            if ((value = this.getFrom(doc)) !== prev)
+                callback(value, prev);
+        });
+        callback._sloth = h._sloth;
+    }
+    unregisterHandler(callback) {
+        this.docSlot.unregisterHandler(callback);
+    }
+}
+
 /**
  * Represents an object contained in a document,
- * referenced by its path.
+ * referenced by its (property) path.
  */
-class DocumentPathSlot extends SlotBase {
+class DocumentPathSlot extends SubslotBase {
     constructor(docSlot, path=[]) {
         super();
         this.docSlot = docSlot;
-        this.path = path;
+        this._path = path;
     }
     
     get() {
@@ -96,14 +115,14 @@ class DocumentPathSlot extends SlotBase {
     }
 
     getFrom(doc) {
-        return this._getPath(doc, this.path);
+        return this._getPath(doc, this._path);
     }
 
     set(value) {
         var newValue;
         this.docSlot.change(doc => {
-            var parent = this._getPath(doc, this.path.slice(0, -1)),
-                prop = this.path.slice(-1)[0];
+            var parent = this._getPath(doc, this._path.slice(0, -1), () => ({})),
+                prop = this._path.slice(-1)[0];
             if (typeof value === 'function')
                 value = value(parent[prop]);
             if (value instanceof Promise) return;
@@ -122,7 +141,7 @@ class DocumentPathSlot extends SlotBase {
 
     path(path=[]) {
         return path && path.length ?
-            this.docSlot.path(this.path.concat(path)) : this;
+            this.docSlot.path(this._path.concat(path)) : this;
     }
 
     object(objectId) {
@@ -130,10 +149,13 @@ class DocumentPathSlot extends SlotBase {
         return this.docSlot.object(objectId);
     }
 
-    _getPath(obj, path) {
+    _getPath(obj, path, viv=undefined) {
         for (let prop of path) {
             if (obj === undefined) break;
-            obj = obj[prop];
+            var value = obj[prop];
+            obj = (viv && typeof value !== 'object')
+                ? (obj[prop] = viv(), obj[prop])  // must access through prop to get Automerge proxy
+                : value;
         }
         return obj;
     }
@@ -143,7 +165,7 @@ class DocumentPathSlot extends SlotBase {
  * Represents an object contained in a document,
  * referenced via its object identifier.
  */
-class DocumentObjectSlot extends SlotBase {
+class DocumentObjectSlot extends SubslotBase {
     constructor(docSlot, objectId) {
         super();
         this.docSlot = docSlot;
@@ -178,4 +200,4 @@ class DocumentObjectSlot extends SlotBase {
 
 
 
-module.exports = {DocumentSlot, DocumentPathSlot, DocumentObjectSlot};
+module.exports = {SlotBase, DocumentSlot, SubslotBase, DocumentPathSlot, DocumentObjectSlot};
