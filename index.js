@@ -58,7 +58,8 @@ class DocumentSlot extends SlotBase {
         return doc;
     }
 
-    path(path=[]) {
+    path(...path) {
+        path = flattenPath(path);
         return (path && path.length) ? new DocumentPathSlot(this, path) : this;
     }
 
@@ -139,7 +140,8 @@ class DocumentPathSlot extends SubslotBase {
         return this.docSlot.change(doc => func(this.getFrom(doc)), post);
     }
 
-    path(path=[]) {
+    path(...path) {
+        path = flattenPath(path);
         return path && path.length ?
             this.docSlot.path(this._path.concat(path)) : this;
     }
@@ -188,7 +190,7 @@ class DocumentObjectSlot extends SubslotBase {
         return this.docSlot.change(doc => func(this.getFrom(doc)), post);
     }
 
-    path(path=[]) {
+    path(...path) {
         throw new Error('not implemented');
     }
 
@@ -196,6 +198,11 @@ class DocumentObjectSlot extends SubslotBase {
         // (does not check that objectId is actually a sub-object)
         return this.docSlot.object(objectId);
     }
+}
+
+
+function flattenPath(path) {
+    return [].concat(...path.map(el => typeof el === 'string' ? [el] : el));
 }
 
 
