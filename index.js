@@ -191,7 +191,8 @@ class DocumentObjectSlot extends SubslotBase {
     }
 
     path(...path) {
-        throw new Error('not implemented');
+        // DocumentPathSlot#docSlot would now be a subslot, but that's ok
+        return new DocumentPathSlot(this, path);
     }
 
     object(objectId) {

@@ -13,8 +13,8 @@ type DocumentSlotInterface<D, T> = {
 
   park(): Promise<T> & Cancelable;
 
-  path(path: [string]): DocumentSlotInterface<D, any>;
-  object(objectId: string | {}): DocumentSlotInterface<D, any>;
+  path<F>(path: [string]): DocumentSlotInterface<D, F>;
+  object<F>(objectId: string | {}): DocumentSlotInterface<D, F>;
 
   registerHandler(handler: (doc: T) => void): void;
   unregisterHandler(handler: (doc: T) => void): void;
