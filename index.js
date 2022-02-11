@@ -42,6 +42,8 @@ class DocumentSlot extends SlotBase {
         this.docSet.setDoc(this.docId, doc);
     }
 
+    get docSlot() { return this; }
+
     change(func, post=undefined) {
         var doc = this.get() || automerge.init(),
             newDoc = automerge.change(doc, func);
@@ -182,12 +184,26 @@ class DocumentObjectSlot extends SubslotBase {
         return automerge.getObjectById(doc, this.objectId);
     }
 
+    getProxiedFrom(doc) {
+        if (automerge.getObjectId(doc) === this.objectId)
+            return doc;
+        else {
+            /* need to walk the tree \: */
+            for (let v of Object.values(doc)) {
+                if (typeof v === 'object') {
+                    var sub = this.getProxiedFrom(v);
+                    if (sub) return sub;
+                }
+            }
+        }
+    }
+
     set(value) {
         throw new Error('cannot set object by identifier only');
     }
 
     change(func, post=undefined) {
-        return this.docSlot.change(doc => func(this.getFrom(doc)), post);
+        return this.docSlot.change(doc => func(this.getProxiedFrom(doc)), post);
     }
 
     path(...path) {
