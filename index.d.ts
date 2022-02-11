@@ -1,5 +1,6 @@
 import * as automerge from 'automerge';
-
+import { DocSet } from './docset';
+export * from './docset';
 
 
 interface DocumentSlotInterface<D, T> {
@@ -26,7 +27,6 @@ type Cancelable = {
 }
 
 
-type DocSet = any  /* actually deprecated in Automerge 1.x */
 type DocID = string
 
 declare class SlotBase<D, T> {

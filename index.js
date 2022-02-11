@@ -1,4 +1,5 @@
-const automerge = require('automerge');
+import automerge from 'automerge';
+export * from './docset';
 
 
 /**
@@ -224,4 +225,4 @@ function flattenPath(path) {
 
 
 
-module.exports = {SlotBase, DocumentSlot, SubslotBase, DocumentPathSlot, DocumentObjectSlot};
+export { SlotBase, DocumentSlot, SubslotBase, DocumentPathSlot, DocumentObjectSlot }
