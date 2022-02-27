@@ -46,7 +46,7 @@ class DocumentSlot extends SlotBase {
     get docSlot() { return this; }
 
     change(func, post=undefined) {
-        var doc = this.get() || automerge.init(),
+        var doc = this.get() || this.create(),
             newDoc = automerge.change(doc, func);
         if (post) post(newDoc);
         // only set if changed, to avoid triggering an event
@@ -56,9 +56,7 @@ class DocumentSlot extends SlotBase {
     }
 
     create() {
-        var doc = automerge.init();
-        this.set(doc);
-        return doc;
+        return this.docSet.createDoc(this.docId);
     }
 
     path(...path) {

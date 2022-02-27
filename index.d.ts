@@ -54,3 +54,6 @@ declare class DocumentSlot<D> extends SlotBase<D, automerge.Doc<D>> implements D
     registerHandler(handler: (doc: automerge.Doc<D>) => void): void
     unregisterHandler(handler: (doc: automerge.Doc<D>) => void): void
 }
+
+
+export { DocumentSlotInterface, DocumentSlot, DocID, SlotBase, Cancelable }

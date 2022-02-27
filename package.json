@@ -4,7 +4,7 @@
   "description": "A thin layer for accessing Automerge elements through a unified interface",
   "main": "index.js",
   "peerDependencies": {
-    "automerge": ">= 1.0.0 < 2"
+    "automerge": "<= 1.0.1-preview.7"
   },
   "author": "Shachar Itzhaky",
   "license": "MIT"
